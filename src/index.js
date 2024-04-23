@@ -1,17 +1,58 @@
 const fs = require("node:fs");
+const fsPromises = require("node:fs/promises");
 
-console.log("Promise output:" + doesFileExist("./pokemonStats.json"));
+console.log("Promise output:" + doesFileExistPromise("./pokemonStats.json"));
 console.log("Sync output:" + doesFileExistSync("./pokemonStats.json"));
 
-function doesFileExist(targetPath) {
+(async () => {
+  let asyncResult = await doesFileExistAsync("./pokemonStats.json");
+  console.log("Async output:" + asyncResult.size);
+})();
+
+/*
+
+async function to get pokemon data 
+
+await for result 
+
+update the screen 
+
+*/
+
+async function doesFileExistAsync(targetPath) {
+  return await fsPromises.stat(targetPath);
+
+  // let result = false;
+  // result = await fsPromises.stat(targetPath);
+  // return result;
+}
+
+function doesFileExistPromise(targetPath) {
   let result = false;
+
+  return new Promise((resolve, reject) => {
+    fsPromises
+      .stat(targetPath)
+      .then((statData) => {
+        if (statData.size || statData.birthtimeMs) {
+          result = true;
+          console.log(result);
+          resolve(result);
+        } else {
+          resolve(result);
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
 
   // function(data, data, whatever, callbackFunction)
   // fs.exists(targetPath, doSomethingWithResult());
-  fs.exists(targetPath, (existsResult) => {
-    result = existsResult;
-    return result;
-  });
+  // fs.exists(targetPath, (existsResult) => {
+  // 	result = existsResult;
+  // 	return result;
+  // });
 
   // fs.exists(targetPath).then((existsResult) => {
   // 	// if (existsResult){
@@ -23,6 +64,8 @@ function doesFileExist(targetPath) {
   // }).catch((error) => {
   // 	console.error(error);
   // });
+
+  // return result;
 }
 
 function doesFileExistSync(targetPath) {
@@ -39,15 +82,22 @@ function createJsonFile(targetPath, data) {
   // TODO: wishlist item because a json file already exists for us
 }
 
-function loadDataFromFile(targetPath) {
+async function loadDataFromFile(targetPath) {
   let data = null;
 
-  // TODO: Load data from file logic goes here
-  // Reading data from files takes time
-  // promises or async/await
+  let doesFileExist = await doesFileExistAsync(targetPath);
+  if (doesFileExist) {
+    data = await fsPromises.readFile(targetPath, { encoding: "utf8" });
+    data = JSON.parse(data);
+  }
 
   return data;
 }
+
+(async () => {
+  let fileData = await loadDataFromFile("./pokemonStats.json");
+  console.log(fileData);
+})();
 
 /*
 Technique 1 to modify keys in JSON:
